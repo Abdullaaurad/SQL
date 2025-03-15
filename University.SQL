@@ -230,3 +230,64 @@ BEGIN
 END
 
 CALL GradeStudent(2);
+
+CREATE TRIGGER before_student_insert
+BEFORE INSERT ON Students
+FOR EACH ROW
+BEGIN
+    IF TIMESTAMPDIFF(YEAR, NEW.DateOfBirth, CURDATE()) < 18 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Student must be at least 18 years old';
+    END IF;
+END 
+DELIMITER ;
+
+CALL StoreStudent("Yunus", "Mahir", '2017-11-24', 'Ayyub@gmail.com', 1, '07799911289' );
+
+CREATE TRIGGER before_marks_insert
+BEFORE INSERT ON Participations
+FOR EACH ROW
+BEGIN
+    IF NEW.Marks IS NULL THEN
+        SET NEW.Marks = 0;
+    END IF;
+END;
+
+INSERT INTO Participations (StudentID, CourseID, Marks)
+VALUES 
+    (1, 3, NULL)
+;
+
+CREATE TABLE StudentArchive (
+    StudentID INT,
+    FirstName VARCHAR(50),
+    LastName VARCHAR(50),
+    DeletedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TRIGGER after_student_delete
+AFTER DELETE ON Students
+FOR EACH ROW
+BEGIN
+    INSERT INTO StudentArchive (StudentID, FirstName, LastName)
+    VALUES (OLD.StudentID, OLD.FirstName, OLD.LastName);
+END
+
+CREATE PROCEDURE EnrollStudent(
+    IN p_StudentID INT,
+    IN p_CourseID INT
+)
+BEGIN
+    DECLARE studentExists INT;
+
+    SELECT COUNT(*) INTO studentExists FROM Students WHERE StudentID = p_StudentID;
+
+    IF studentExists = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Student does not exist!';
+    ELSE
+        INSERT INTO Participations (StudentID, CourseID, Marks) VALUES (p_StudentID, p_CourseID, 0);
+    END IF;
+END;
+
+Call EnrollStudent(3,2);
