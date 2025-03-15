@@ -175,3 +175,58 @@ JOIN Participations P ON P.StudentID = S.StudentID
 JOIN Courses C ON P.CourseID = C.CourseID;
 
 SELECT * FROM studentgrade;
+
+CREATE PROCEDURE StoreStudent (
+    IN FirstName VARCHAR(50),
+    IN LastName VARCHAR(50),
+    IN DateOfBirth DATE,
+    IN Email VARCHAR(100),
+    IN DepartmentID INT,
+    IN PhoneNumber VARCHAR(10)
+)
+BEGIN
+    INSERT INTO Students(`FirstName`, `LastName`, `DateOfBirth`, `Email`, `DepartmentID`, `PhoneNumber`) 
+    VALUES(
+        `FirstName`,
+        `LastName`,
+        `DateOfBirth`,
+        `Email`,
+        `DepartmentID`,
+        `PhoneNumber`
+    );
+END;
+
+CALL StoreStudent("Abdulla", "Aurad", '2002-11-24', 'Abdullauarda@gmail.com', 1, '0779991124' );
+
+CREATE PROCEDURE StoreDepartment (
+    IN DepartmentName VARCHAR(50),
+    IN Location VARCHAR(100)
+)
+BEGIN 
+    IF Location IS NULL THEN
+        SET Location = 'Building A';
+    END IF;
+    INSERT INTO department(`DepartmentName`, `Location`)
+    VALUES (`DepartmentName`, `Location`);
+END;
+
+CALL StoreDepartment("Chemistry", null);
+
+DROP PROCEDURE `StoreDepartment`;
+
+CREATE PROCEDURE GradeStudent (IN StudentID INT)
+BEGIN
+    SELECT S.StudentID , CONCAT(S.FirstName , ' ', S.LastName ) AS FullName,  C.CourseName,
+    CASE 
+        WHEN P.Marks > 70 THEN 'A'
+        WHEN P.Marks > 60 THEN 'B'
+        WHEN P.Marks > 50 THEN 'C'
+        WHEN P.Marks > 40 THEN 'D'
+    END AS Grade
+    FROM Students S
+    JOIN Participations P ON P.`StudentID` = `S`.`StudentID`
+    JOIN courses C ON P.`CourseID` = C.`CourseID`
+    WHERE S.StudentID = StudentID;
+END
+
+CALL GradeStudent(2);
