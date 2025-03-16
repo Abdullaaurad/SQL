@@ -291,3 +291,35 @@ BEGIN
 END;
 
 Call EnrollStudent(3,2);
+
+CREATE Table Department_Update (
+    ID INT AUTO_INCREMENT NOT NULL,
+    OldValue VARCHAR(100),
+    NewValue VARCHAR(100),
+    UpdatedColumn VARCHAR(100),
+    PRIMARY KEY (ID)
+)
+
+CREATE TABLE Department (
+    DepartmentID INT NOT NULL AUTO_INCREMENT,
+    DepartmentName VARCHAR(50),
+    Location VARCHAR(100),
+    PRIMARY KEY (DepartmentID)
+);
+
+CREATE TRIGGER Store_Update
+AFTER UPDATE ON Department
+FOR EACH ROW
+BEGIN
+    IF OLD.DepartmentName <> NEW.DepartmentName THEN
+        INSERT INTO Department_Update (OldValue, NewValue, UpdatedColumn)
+        VALUES (OLD.DepartmentName, NEW.DepartmentName, 'DepartmentName');
+    END IF;
+    
+    IF OLD.Location <> NEW.Location THEN
+        INSERT INTO Department_Update (OldValue, NewValue, UpdatedColumn)
+        VALUES (OLD.Location, NEW.Location, 'Location');
+    END IF;
+END
+
+UPDATE Department SET `Location` = "Colombo" WHERE `DepartmentID` = 1;
